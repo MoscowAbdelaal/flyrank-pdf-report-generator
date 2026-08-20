@@ -81,6 +81,7 @@ app.post('/reports', async (req, res) => {
             const existing = await getTodaysReport();
             if (existing) {
                 const fileLink = `/reports/${existing.id}/file`;
+                console.log(`🔄 Idempotency: Returning existing report ${existing.id}`);
                 return res.status(200).json({
                     id: existing.id,
                     file: fileLink,
@@ -181,6 +182,9 @@ async function start() {
         console.log(`  POST /reports            - Generate a report`);
         console.log(`  GET  /reports/:id        - Get report metadata`);
         console.log(`  GET  /reports/:id/file   - Download the PDF`);
+        console.log(`\n💡 Test idempotency: curl -X POST http://localhost:${PORT}/reports -H "Content-Type: application/json" -d '{}'`);
+        console.log(`   Then run the same command again — you'll get the same ID.`);
+        console.log(`   To force a new report: curl -X POST http://localhost:${PORT}/reports -H "Content-Type: application/json" -d '{"force":true}'`);
     });
 }
 
