@@ -22,7 +22,6 @@ async function seed(count = 200) {
     // Delete all rows (safe to run twice)
     await db.run('DELETE FROM orders');
 
-    // Products and customers
     const products = [
         'Laptop', 'Keyboard', 'Mouse', 'Monitor', 'Headphones',
         'Charger', 'Speakers', 'Webcam', 'Desk Lamp', 'USB Hub',
@@ -37,7 +36,6 @@ async function seed(count = 200) {
         'Yara', 'Zack', 'Amy', 'Brian', 'Clara', 'David'
     ];
 
-    // Generate orders
     const orders = [];
     const now = Date.now();
     const daysMs = count === 5000 ? 90 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
@@ -51,7 +49,6 @@ async function seed(count = 200) {
         orders.push({ customer, product, amount, date: dateStr });
     }
 
-    // Insert orders in batches
     for (const order of orders) {
         await db.run(
             'INSERT INTO orders (customer, product, amount, created_at) VALUES (?, ?, ?, ?)',
@@ -63,8 +60,13 @@ async function seed(count = 200) {
     console.log(`✅ Seeded ${result.count} orders`);
 
     await db.close();
+    return result.count;
 }
 
-// Run with count from command line
-const count = parseInt(process.argv[2]) || 200;
-seed(count).catch(console.error);
+// If run directly (not imported), run with default count
+if (require.main === module) {
+    const count = parseInt(process.argv[2]) || 200;
+    seed(count).catch(console.error);
+}
+
+module.exports = { seed };
