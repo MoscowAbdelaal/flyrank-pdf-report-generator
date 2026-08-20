@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const { open } = require('sqlite');
 const path = require('path');
 
-async function seed() {
+async function seed(count = 200) {
     const db = await open({
         filename: path.join(__dirname, '../report.db'),
         driver: sqlite3.Database
@@ -25,31 +25,33 @@ async function seed() {
     // Products and customers
     const products = [
         'Laptop', 'Keyboard', 'Mouse', 'Monitor', 'Headphones',
-        'Charger', 'Speakers', 'Webcam', 'Desk Lamp', 'USB Hub'
+        'Charger', 'Speakers', 'Webcam', 'Desk Lamp', 'USB Hub',
+        'Tablet', 'Smartwatch', 'Drone', 'Camera', 'Printer',
+        'Scanner', 'External Drive', 'Router', 'Cable', 'Adapter'
     ];
     const customers = [
         'Alice', 'Bob', 'Charlie', 'Diana', 'Eve', 'Frank',
         'Grace', 'Henry', 'Ivy', 'Jack', 'Kate', 'Leo',
         'Mia', 'Noah', 'Olivia', 'Peter', 'Quinn', 'Ruby',
         'Sam', 'Tina', 'Uma', 'Victor', 'Wendy', 'Xavier',
-        'Yara', 'Zack'
+        'Yara', 'Zack', 'Amy', 'Brian', 'Clara', 'David'
     ];
 
-    // Generate ~200 random orders
+    // Generate orders
     const orders = [];
     const now = Date.now();
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const daysMs = count === 5000 ? 90 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
 
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < count; i++) {
         const customer = customers[Math.floor(Math.random() * customers.length)];
         const product = products[Math.floor(Math.random() * products.length)];
         const amount = Math.round((5 + Math.random() * 195) * 100) / 100;
-        const date = new Date(now - Math.random() * thirtyDaysMs);
+        const date = new Date(now - Math.random() * daysMs);
         const dateStr = date.toISOString().slice(0, 19).replace('T', ' ');
         orders.push({ customer, product, amount, date: dateStr });
     }
 
-    // Insert orders
+    // Insert orders in batches
     for (const order of orders) {
         await db.run(
             'INSERT INTO orders (customer, product, amount, created_at) VALUES (?, ?, ?, ?)',
@@ -57,16 +59,12 @@ async function seed() {
         );
     }
 
-    // Count rows
     const result = await db.get('SELECT COUNT(*) as count FROM orders');
     console.log(`✅ Seeded ${result.count} orders`);
-
-    // Show a sample
-    const sample = await db.all('SELECT * FROM orders LIMIT 5');
-    console.log('\n📊 Sample orders:');
-    console.table(sample);
 
     await db.close();
 }
 
-seed().catch(console.error);
+// Run with count from command line
+const count = parseInt(process.argv[2]) || 200;
+seed(count).catch(console.error);

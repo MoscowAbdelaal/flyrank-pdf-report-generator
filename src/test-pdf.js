@@ -5,7 +5,7 @@ const path = require('path');
 async function test() {
     console.log('📊 Generating test PDF...\n');
 
-    const data = await getReportData();
+    const data = await getReportData(30);
     const outputPath = path.join(__dirname, '../reports/test.pdf');
 
     await generatePDF(data, outputPath);
